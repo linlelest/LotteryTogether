@@ -24,7 +24,7 @@ limiter = Limiter(
     app=app,
     key_func=get_remote_address,
     default_limits=["100 per hour", "20 per minute"],
-    storage_uri="sqlite:///rate_limit.db"
+    storage_uri="memory://"
 )
 
 # 数据库路径
