@@ -1,0 +1,58 @@
+/* 浅色主题 */
+:root {
+    --primary-color: #4f46e5;
+    --primary-hover: #4338ca;
+    --secondary-color: #6b7280;
+    --secondary-hover: #4b5563;
+    --danger-color: #ef4444;
+    --danger-hover: #dc2626;
+    --warning-color: #f59e0b;
+    --warning-hover: #d97706;
+    
+    --bg-color: #f3f4f6;
+    --card-bg: #ffffff;
+    --input-bg: #ffffff;
+    --text-color: #1f2937;
+    --text-muted: #6b7280;
+    --border-color: #e5e7eb;
+    
+    --navbar-bg: #ffffff;
+    --navbar-color: #1f2937;
+}
+
+.light-theme {
+    --bg-color: #f3f4f6;
+    --card-bg: #ffffff;
+    --input-bg: #ffffff;
+    --text-color: #1f2937;
+    --text-muted: #6b7280;
+    --border-color: #e5e7eb;
+    --navbar-bg: #ffffff;
+    --navbar-color: #1f2937;
+}
+
+/* 暗黑主题 */
+.dark-theme {
+    --bg-color: #1f2937;
+    --card-bg: #374151;
+    --input-bg: #4b5563;
+    --text-color: #f9fafb;
+    --text-muted: #9ca3af;
+    --border-color: #4b5563;
+    --navbar-bg: #1f2937;
+    --navbar-color: #f9fafb;
+}
+
+/* 主题过渡动画 */
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.navbar,
+.btn,
+.card,
+input,
+textarea,
+select {
+    transition: all 0.3s ease;
+}
