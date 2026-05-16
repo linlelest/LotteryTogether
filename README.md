@@ -155,6 +155,9 @@ A：开发环境 5173，生产环境通过 Nginx 部署。
 **Q：支持哪些数据库？**
 A：默认 SQLite，TypeORM 支持无缝切换到 PostgreSQL、MySQL 等。
 
+### 谢鸣：
+linux.do
+
 ---
 
 ## 🇬🇧 English
@@ -291,3 +294,5 @@ A: SQLite by default. TypeORM supports PostgreSQL, MySQL, etc.
 ---
 
 *For detailed API reference, see [docs/API.md](docs/API.md). For development guidelines, see [docs/Specification.md](docs/Specification.md).*
+### Thanks：
+linux.do
