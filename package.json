@@ -1,0 +1,31 @@
+{
+  "name": "lottery-together",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel -r --if-present dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "format": "prettier --write \"packages/**/*.{ts,vue,json}\"",
+    "format:check": "prettier --check \"packages/**/*.{ts,vue,json}\""
+  },
+  "lint-staged": {
+    "*.{ts,js,vue}": "eslint --fix",
+    "*.{ts,js,vue,json,md}": "prettier --write"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@nestjs/core"
+    ]
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.4.0",
+    "eslint-plugin-vue": "^10.9.1",
+    "lint-staged": "^17.0.4",
+    "prettier": "^3.8.3",
+    "typescript-eslint": "^8.59.3",
+    "vue-eslint-parser": "^10.4.0"
+  }
+}
