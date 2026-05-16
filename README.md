@@ -55,6 +55,16 @@ pnpm dev
 # 后端：http://localhost:3000
 ```
 
+### 一键部署脚本
+Linux一键部署/卸载脚本：
+```bash
+curl -s https://raw.githubusercontent.com/linlelest/LotteryTogether/refs/heads/main/deploy.sh | bash
+```
+Windows一键部署/卸载脚本：
+```bash
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/linlelest/LotteryTogether/refs/heads/main/deploy.ps1").Content
+```
+
 ### 可用命令
 
 | 命令 | 说明 |
@@ -112,12 +122,6 @@ pnpm build
 
 # 4. 运行数据库迁移
 cd packages/server && pnpm migration:run
-
-# 5. 一键部署脚本（选择中文/英文）
-# Windows:
-deploy.ps1
-# Linux:
-chmod +x deploy.sh && ./deploy.sh
 ```
 
 ### 环境变量说明

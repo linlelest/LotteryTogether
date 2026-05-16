@@ -47,9 +47,45 @@ do_install() {
   echo ""
   [ "$LANG" = "en" ] && log "[INFO] Starting deployment..." || log "[信息] 开始部署..."
 
+  # Ask about Nginx first
+  echo ""
+  if [ "$LANG" = "en" ]; then
+    echo "Use Nginx reverse proxy? (Access via http://your-ip/lottery)"
+    echo "  [Y] Yes - auto-configure reverse proxy, WebSocket, static files"
+    echo "  [N] No - deploy app only"
+  else
+    echo "是否使用 Nginx 反向代理？（通过 http://your-ip/lottery 访问）"
+    echo "  [Y] 使用 - 自动配置反向代理、WebSocket、静态文件服务"
+    echo "  [N] 不使用 - 仅部署应用"
+  fi
+  read -p "$([ "$LANG" = "en" ] && echo 'Enter Y or N: ' || echo '输入 Y 或 N: ')" install_nginx
+
   # Check prerequisites
-  command -v node >/dev/null 2>&1 || { err "[ERROR] Node.js not found"; exit 1; }
-  command -v pnpm >/dev/null 2>&1 || { err "[ERROR] pnpm not found"; exit 1; }
+  command -v node >/dev/null 2>&1 || {
+    if [ "$LANG" = "en" ]; then
+      log "Node.js not found, installing..."
+    else
+      log "未检测到 Node.js，正在安装..."
+    fi
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash - 2>/dev/null || true
+    apt-get install -y nodejs 2>/dev/null || yum install -y nodejs 2>/dev/null || {
+      err "Node.js install failed, please install manually"; exit 1;
+    }
+  }
+  command -v pnpm >/dev/null 2>&1 || {
+    if [ "$LANG" = "en" ]; then
+      log "pnpm not found, installing..."
+    else
+      log "未检测到 pnpm，正在安装..."
+    fi
+    npm install -g pnpm 2>/dev/null || { err "pnpm install failed"; exit 1; }
+  }
+  # Check unzip
+  command -v unzip >/dev/null 2>&1 || {
+    apt-get install -y unzip 2>/dev/null || yum install -y unzip 2>/dev/null || {
+      err "unzip not found, please install unzip"; exit 1;
+    }
+  }
 
   [ "$LANG" = "en" ] && log "[Step 1/4] Installing dependencies..." || log "[步骤 1/4] 安装依赖..."
   cd "$SCRIPT_DIR"
@@ -62,12 +98,23 @@ do_install() {
   cd "$SCRIPT_DIR/packages/server" && pnpm migration:run 2>/dev/null || true
   cd "$SCRIPT_DIR"
 
-  [ "$LANG" = "en" ] && log "[Step 4/4] Generating Nginx config..." || log "[步骤 4/4] 生成 Nginx 配置..."
-  NGINX_CONF="/etc/nginx/conf.d/lottery.conf"
-  read -p "$([ "$LANG" = "en" ] && echo 'Nginx config path' || echo 'Nginx 配置路径') [$NGINX_CONF]: " INPUT_PATH
-  NGINX_CONF="${INPUT_PATH:-$NGINX_CONF}"
+  # Install and configure Nginx if opted in
+  if [ "$install_nginx" = "Y" ] || [ "$install_nginx" = "y" ]; then
+    # Install Nginx if not present
+    command -v nginx >/dev/null 2>&1 || {
+      if [ "$LANG" = "en" ]; then
+        log "Nginx not found, installing..."
+      else
+        log "未检测到 Nginx，正在安装..."
+      fi
+      apt-get install -y nginx 2>/dev/null || yum install -y nginx 2>/dev/null || {
+        err "Nginx install failed"; exit 1;
+      }
+    }
 
-  cat > "$NGINX_CONF" <<EOF
+    [ "$LANG" = "en" ] && log "Configuring Nginx..." || log "配置 Nginx..."
+    NGINX_CONF="/etc/nginx/conf.d/lottery.conf"
+    cat > "$NGINX_CONF" <<EOF
 server {
     listen 80;
     server_name _;
@@ -101,7 +148,9 @@ server {
 EOF
 
   [ "$LANG" = "en" ] && log "Config written to $NGINX_CONF" || log "配置已写入 $NGINX_CONF"
-  [ "$LANG" = "en" ] && log "Run 'nginx -s reload' to apply" || log "执行 'nginx -s reload' 使配置生效"
+  nginx -t 2>/dev/null && { nginx -s reload 2>/dev/null || systemctl start nginx 2>/dev/null || service nginx start 2>/dev/null || true; }
+  [ "$LANG" = "en" ] && log "Nginx started" || log "Nginx 已启动"
+fi  # end Nginx install block
 
   echo ""
   [ "$LANG" = "en" ] && echo "========== Deployment Complete ==========" || echo "========== 部署完成 =========="
@@ -170,6 +219,41 @@ else
   echo "  [2] 卸载"
 fi
 read -p "$([ "$LANG" = "en" ] && echo 'Enter 1 or 2: ' || echo '输入 1 或 2: ')" action
+
+# Download zip if not in project directory
+if [ ! -f "$SCRIPT_DIR/package.json" ]; then
+  echo ""
+  if [ "$LANG" = "en" ]; then
+    echo "Project not found. Downloading source package..."
+  else
+    echo "未检测到项目文件，正在下载源码包..."
+  fi
+  DL_URL="https://github.com/linlelest/LotteryTogether/archive/refs/heads/main.zip"
+  ZIP_PATH="$SCRIPT_DIR/lottery.zip"
+  EXTRACT_DIR="$SCRIPT_DIR/LotteryTogether-main"
+  TARGET_DIR="$SCRIPT_DIR/LotteryTogether"
+
+  if command -v curl &>/dev/null; then
+    curl -L -o "$ZIP_PATH" "$DL_URL"
+  elif command -v wget &>/dev/null; then
+    wget -O "$ZIP_PATH" "$DL_URL"
+  else
+    err "curl or wget required to download"
+    exit 1
+  fi
+
+  unzip -o "$ZIP_PATH" -d "$SCRIPT_DIR" 2>/dev/null
+  rm -f "$ZIP_PATH"
+  [ -d "$TARGET_DIR" ] && rm -rf "$TARGET_DIR"
+  mv "$EXTRACT_DIR" "$TARGET_DIR" 2>/dev/null || true
+  SCRIPT_DIR="$TARGET_DIR"
+  DB_PATH="$SCRIPT_DIR/packages/server/data/lottery.db"
+  if [ "$LANG" = "en" ]; then
+    log "Source downloaded to: $SCRIPT_DIR"
+  else
+    log "源码已下载到: $SCRIPT_DIR"
+  fi
+fi
 
 case $action in
   2) do_uninstall;;
